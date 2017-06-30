@@ -146,6 +146,7 @@ def train_model(config, train_batches, validation_batches):
 if __name__ == "__main__":
 	if len(sys.argv) != 3:
 		sys.stderr.write("Usage: %s TRAIN_SET DEV_SET\n" % sys.argv[0])
+		sys.exit(1)
 
 	config = DefaultConfig()
 
@@ -164,11 +165,13 @@ if __name__ == "__main__":
 	train_batches = generate_instances(
 		train_lexicon,
 		labels.max_number(),
+		batch_size=config.batch_size,
 		prefix_len=config.prefix_len,
 		suffix_len=config.suffix_len)
 	validation_batches = generate_instances(
 		validation_lexicon,
 		labels.max_number(),
+		batch_size=config.batch_size,
 		prefix_len=config.prefix_len,
 		suffix_len=config.suffix_len)
 
