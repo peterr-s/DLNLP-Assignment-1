@@ -18,7 +18,6 @@ class Model:
 		if phase != Phase.Predict:
 			self._y = tf.placeholder(tf.float32, shape = [batch_size, label_size])
 
-		# build hidden layers
 		layer = tf.reshape(tf.one_hot(self._x, n_chars), [batch_size, -1])
 		for (i, hidden_size) in enumerate(hidden_sizes):
 			W = tf.get_variable("W_hidden_%d" % i, shape = [layer.shape[1], hidden_size])
@@ -26,24 +25,24 @@ class Model:
 			hidden_outputs = tf.sigmoid(tf.matmul(layer, W) + b)
 			layer = hidden_outputs
 		hidden = layer
-		
-		# build output layer
+
 		w = tf.get_variable("w", shape = [hidden.shape[1], label_size])
 		b = tf.get_variable("b", shape = [1])
-		
-		# create loss function
-		logits = tf.matmul(hidden, w) + b
-		losses = tf.nn.sigmoid_cross_entropy_with_logits(labels = tf.cast(self._y, tf.float32), logits = logits)
-		self._loss = tf.reduce_sum(losses)
-		
+		logits = []
 		if phase == Phase.Train :
-			self._train_op = tf.train.AdamOptimizer(0.004).minimize(self._loss) # converges much faster than gradient descent
+			logits = tf.nn.dropout(tf.matmul(hidden, w) + b, keep_prob = 0.92)
 		else :
-			self._probs = tf.sigmoid(logits)
+			logits = tf.matmul(hidden, w) + b
+		self._loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels = tf.cast(self._y, tf.float32), logits = logits))
+
+		if phase == Phase.Train :
+			self._train_op = tf.train.AdamOptimizer(0.002).minimize(self._loss)
+		else :
+			self._probs = tf.nn.softmax(logits)
 			self._labels = tf.cast(tf.round(self._probs), tf.int64)
-			
+
 			if phase == Phase.Validation :
-				correct = tf.equal(tf.argmax(self._y), tf.argmax(self._labels)) # argmax because there are potentially multiple labels per token
+				correct = tf.equal(tf.argmax(self._y), tf.argmax(self._labels))
 				self._accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
 	@property
