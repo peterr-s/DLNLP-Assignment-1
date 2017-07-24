@@ -27,22 +27,23 @@ class Model:
 		hidden = layer
 
 		w = tf.get_variable("w", shape = [hidden.shape[1], label_size])
-		b = tf.get_variable("b", shape = [1])
-		logits = []
+		b = tf.get_variable("b", shape = [label_size])
+		
 		if phase == Phase.Train :
-			logits = tf.nn.dropout(tf.matmul(hidden, w) + b, keep_prob = 0.92)
-		else :
-			logits = tf.matmul(hidden, w) + b
+			hidden = tf.nn.dropout(hidden, keep_prob = 0.92)
+
+		logits = tf.matmul(hidden, w) + b
+		
 		self._loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels = tf.cast(self._y, tf.float32), logits = logits))
 
 		if phase == Phase.Train :
 			self._train_op = tf.train.AdamOptimizer(0.002).minimize(self._loss)
 		else :
 			self._probs = tf.nn.softmax(logits)
-			self._labels = tf.cast(tf.round(self._probs), tf.int64)
+			self._labels = self._probs
 
 			if phase == Phase.Validation :
-				correct = tf.equal(tf.argmax(self._y), tf.argmax(self._labels))
+				correct = tf.equal(tf.argmax(self._y), tf.argmax(tf.cast(tf.round(self._labels), tf.int64)))
 				self._accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
 	@property

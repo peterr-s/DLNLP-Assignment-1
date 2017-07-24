@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from enum import Enum
 import os
 import sys
