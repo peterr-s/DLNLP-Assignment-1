@@ -36,7 +36,7 @@ class Model:
 		self._loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels = tf.cast(self._y, tf.float32), logits = logits))
 
 		if phase == Phase.Train :
-			self._train_op = tf.train.AdamOptimizer(0.002).minimize(self._loss)
+			self._train_op = tf.train.AdamOptimizer(0.005).minimize(self._loss)
 		else :
 			self._probs = tf.nn.softmax(logits)
 			self._labels = self._probs
