@@ -24,16 +24,15 @@ class Model:
 			b = tf.get_variable("b_hidden_%d" % i, shape = [hidden_size])
 			hidden_outputs = tf.sigmoid(tf.matmul(layer, W) + b)
 			layer = hidden_outputs
+			
+			if phase == Phase.Train :
+				layer = tf.nn.dropout(layer, keep_prob = 0.92)
+
 		hidden = layer
 
 		w = tf.get_variable("w", shape = [hidden.shape[1], label_size])
 		b = tf.get_variable("b", shape = [label_size])
-		
-		if phase == Phase.Train :
-			hidden = tf.nn.dropout(hidden, keep_prob = 0.92)
-
 		logits = tf.matmul(hidden, w) + b
-		
 		self._loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(labels = tf.cast(self._y, tf.float32), logits = logits))
 
 		if phase == Phase.Train :
